@@ -1,0 +1,26 @@
+google-maps-vue/.DS_Store
+google-maps-vue/node_modules
+google-maps-vue/dist
+
+
+# local env files
+google-maps-vue/.env.local
+google-maps-vue/.env.*.local
+google-maps-vue/.env
+# Log files
+google-maps-vue/npm-debug.log*
+google-maps-vue/yarn-debug.log*
+google-maps-vue/yarn-error.log*
+google-maps-vue/pnpm-debug.log*
+
+# Editor directories and files
+google-maps-vue/.idea
+google-maps-vue/.vscode
+google-maps-vue/*.suo
+google-maps-vue/*.ntvs*
+google-maps-vue/*.njsproj
+google-maps-vue/*.sln
+google-maps-vue/*.sw?
+
+backend/Flask/venv
+backend/Machine Learning/MLvenv
