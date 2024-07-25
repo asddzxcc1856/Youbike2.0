@@ -58,8 +58,10 @@ def recommend():
     date = data.get('date')
     time = data.get('time')
     user_location = data.get('location')
-    user_latitude = user_location.get('lat')
-    user_longitude = user_location.get('lng')
+    user_latitude = user_location[0].get('lat')
+    user_longitude = user_location[0].get('lng')
+    user_latitude = user_location[1].get('lat')
+    user_longitude = user_location[1].get('lng')
 
     #if(query 查詢過):
     # print("服務時間 : ",e - s)
@@ -107,15 +109,23 @@ def recommend():
     # 按照距離排序，推薦最近的站點
     recommended_station = selected_features_with_bikes.sort_values(by='distance_to_user').iloc[0]
 
-    result = {
+    result = [{
         "location": {
             "lat": recommended_station['latitude'],
             "lng": recommended_station['longitude']
-        },
+            },
         "station": recommended_station['sna'],
         "distance": recommended_station['distance_to_user'],
         "predicted_available_bikes": int(recommended_station['predicted_available_bikes'])
-    }
+        }, 
+        {"location": {
+            "lat": recommended_station['latitude'],
+            "lng": recommended_station['longitude']
+            },
+        "station": recommended_station['sna'],
+        "distance": recommended_station['distance_to_user'],
+        "predicted_available_bikes": int(recommended_station['predicted_available_bikes'])
+        }]
     e = ti.time()
     print("服務時間 : ",e - s)
     return jsonify(result)
