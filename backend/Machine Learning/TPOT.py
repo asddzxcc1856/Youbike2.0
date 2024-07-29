@@ -19,41 +19,43 @@ counter = 0
 logging.basicConfig(filename='tpot_progress.log', level=logging.INFO)
 
 # 遍歷所有 CSV 檔案
-for i in range(500101001, 500119092):
-    file_path = f'rentbike/{i}.csv'
-    if not os.path.exists(file_path):
-        continue
-    
-    # 讀取數據
-    df = pd.read_csv(file_path)
-    
-    # 選取初始特徵
-    df = df[['sno', 'total', 'latitude', 'longitude', 'act', 'srcUpdateTime', 'available_rent_bikes']]
+for name in ['first','second','third','fourth','fifth','sixth','seventh']:
+    for i in range(500101001, 500119092):
+        file_path = f'bike/{name}/{name}_rent/{i}.csv'
+        if not os.path.exists(file_path):
+            print("f'bike/{name}/{name}_rent/{i}.csv' not found")
+            continue
+        
+        # 讀取數據
+        df = pd.read_csv(file_path)
+        
+        # 選取初始特徵
+        df = df[['sno', 'total', 'latitude', 'longitude', 'act', 'srcUpdateTime', 'available_rent_bikes']]
 
-    # 轉換 srcUpdateTime 為 datetime
-    df['srcUpdateTime'] = pd.to_datetime(df['srcUpdateTime'])
+        # 轉換 srcUpdateTime 為 datetime
+        df['srcUpdateTime'] = pd.to_datetime(df['srcUpdateTime'])
 
-    # 提取時間特徵
-    df['hour'] = df['srcUpdateTime'].dt.hour
-    df['minute'] = df['srcUpdateTime'].dt.minute
-    df['second'] = df['srcUpdateTime'].dt.second
-    df['weekday'] = df['srcUpdateTime'].dt.weekday  # 週幾
+        # 提取時間特徵
+        df['hour'] = df['srcUpdateTime'].dt.hour
+        df['minute'] = df['srcUpdateTime'].dt.minute
+        df['second'] = df['srcUpdateTime'].dt.second
+        df['weekday'] = df['srcUpdateTime'].dt.weekday  # 週幾
 
-    # 擴展後的特徵集
-    features = df[['sno', 'total', 'latitude', 'longitude', 'act', 'hour', 'minute', 'second', 'weekday']]
-    labels = df['available_rent_bikes']  # 預測 available_rent_bikes
+        # 擴展後的特徵集
+        features = df[['sno', 'total', 'latitude', 'longitude', 'act', 'hour', 'minute', 'second', 'weekday']]
+        labels = df['available_rent_bikes']  # 預測 available_rent_bikes
 
-    all_features_list.append(features)
-    all_labels_list.append(labels)
-    counter += 1
+        all_features_list.append(features)
+        all_labels_list.append(labels)
+        counter += 1
 
-    # 每 batch_size 次進行一次合併，減少內存壓力
-    if counter % batch_size == 0:
-        all_features = pd.concat(all_features_list, ignore_index=True)
-        all_labels = pd.concat(all_labels_list, ignore_index=True)
-        all_features_list = []
-        all_labels_list = []
-        print(f"Processed {counter} files.")
+        # 每 batch_size 次進行一次合併，減少內存壓力
+        if counter % batch_size == 0:
+            all_features = pd.concat(all_features_list, ignore_index=True)
+            all_labels = pd.concat(all_labels_list, ignore_index=True)
+            all_features_list = []
+            all_labels_list = []
+            print(f"Processed {counter} files.")
         
 # 最後一批資料進行合併
 if counter % batch_size != 0:
@@ -102,7 +104,7 @@ sns.barplot(x=list(metrics.keys()), y=list(metrics.values()))
 plt.title('Model Performance Metrics')
 plt.xlabel('Metrics')
 plt.ylabel('Values')
-plt.show()
+plt.savefig('model_performance_metrics_tpot.png')
 
 # 顯示預測值和真實值的散點圖
 plt.figure(figsize=(10, 6))
@@ -111,7 +113,8 @@ plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
 plt.title('True vs Predicted Values')
 plt.xlabel('True Values')
 plt.ylabel('Predicted Values')
-plt.show()
+plt.savefig('true_vs_predicted_values_tpot.png')
+
 
 # 打印最佳模型的參數
 print("\nBest Pipeline Steps:")

@@ -13,42 +13,44 @@ all_labels_list = []
 batch_size = 1000
 counter = 0
 
-# 遍歷所有 CSV 文件
-for i in range(500101001, 500119092):
-    file_path = f'rentbike/{i}.csv'
-    if not os.path.exists(file_path):
-        continue
+# 遍歷所有 CSV 檔案
+for name in ['first','second','third','fourth','fifth','sixth','seventh']:
+    for i in range(500101001, 500119092):
+        file_path = f'bike/{name}/{name}_rent/{i}.csv'
+        if not os.path.exists(file_path):
+            print("f'bike/{name}/{name}_rent/{i}.csv' not found")
+            continue
+        
+        # 讀取數據
+        df = pd.read_csv(file_path)
+        
+        # 選取初始特徵
+        df = df[['sno', 'total', 'latitude', 'longitude', 'act', 'srcUpdateTime', 'available_rent_bikes']]
 
-    # 讀取數據
-    df = pd.read_csv(file_path)
+        # 轉換 srcUpdateTime 為 datetime
+        df['srcUpdateTime'] = pd.to_datetime(df['srcUpdateTime'])
 
-    # 選擇初始特徵
-    df = df[['sno', 'total', 'latitude', 'longitude', 'act', 'srcUpdateTime', 'available_rent_bikes']]
+        # 提取時間特徵
+        df['hour'] = df['srcUpdateTime'].dt.hour
+        df['minute'] = df['srcUpdateTime'].dt.minute
+        df['second'] = df['srcUpdateTime'].dt.second
+        df['weekday'] = df['srcUpdateTime'].dt.weekday  # 週幾
 
-    # 轉換 srcUpdateTime 為 datetime
-    df['srcUpdateTime'] = pd.to_datetime(df['srcUpdateTime'])
+        # 擴展後的特徵集
+        features = df[['sno', 'total', 'latitude', 'longitude', 'act', 'hour', 'minute', 'second', 'weekday']]
+        labels = df['available_rent_bikes']  # 預測 available_rent_bikes
 
-    # 提取時間特徵
-    df['hour'] = df['srcUpdateTime'].dt.hour
-    df['minute'] = df['srcUpdateTime'].dt.minute
-    df['second'] = df['srcUpdateTime'].dt.second
-    df['weekday'] = df['srcUpdateTime'].dt.weekday  # 週几
+        all_features_list.append(features)
+        all_labels_list.append(labels)
+        counter += 1
 
-    # 擴展後的特徵集
-    features = df[['sno', 'total', 'latitude', 'longitude', 'act', 'hour', 'minute', 'second', 'weekday']]
-    labels = df['available_rent_bikes']  # 預測 available_rent_bikes
-
-    all_features_list.append(features)
-    all_labels_list.append(labels)
-    counter += 1
-
-    # 每 batch_size 次進行一次合併，減少內存壓力
-    if counter % batch_size == 0:
-        all_features = pd.concat(all_features_list, ignore_index=True)
-        all_labels = pd.concat(all_labels_list, ignore_index=True)
-        all_features_list = []
-        all_labels_list = []
-        print(f"Processed {counter} files.")
+        # 每 batch_size 次進行一次合併，減少內存壓力
+        if counter % batch_size == 0:
+            all_features = pd.concat(all_features_list, ignore_index=True)
+            all_labels = pd.concat(all_labels_list, ignore_index=True)
+            all_features_list = []
+            all_labels_list = []
+            print(f"Processed {counter} files.")
 
 # 最後一批資料進行合併
 if counter % batch_size != 0:
@@ -93,7 +95,7 @@ plt.title('Model Performance Metrics')
 plt.xlabel('Metrics')
 plt.ylabel('Values')
 plt.xticks(rotation=45)
-plt.savefig('model_performance_metrics.png')
+plt.savefig('model_performance_metrics_autogluon.png')
 plt.show()
 
 plt.figure(figsize=(10, 6))
@@ -103,7 +105,7 @@ plt.title('True vs Predicted Values')
 plt.xlabel('True Values')
 plt.ylabel('Predicted Values')
 plt.legend()
-plt.savefig('true_vs_predicted_values.png')
+plt.savefig('true_vs_predicted_values_autogluon.png')
 plt.show()
 
 # 展示所有試驗過的模型的優劣評分表
@@ -126,7 +128,7 @@ plt.title('Feature Importance')
 plt.xlabel('Features')
 plt.ylabel('Importance')
 plt.xticks(rotation=45)
-plt.savefig('feature_importance.png')
+plt.savefig('feature_importance_autogluon.png')
 plt.show()
 
 # 可視化訓練過程中的模型性能
@@ -137,5 +139,5 @@ plt.title('Model Performance Over Time')
 plt.xlabel('Model')
 plt.ylabel('Validation Score')
 plt.xticks(rotation=45)
-plt.savefig('training_curves.png')
+plt.savefig('training_curves_autogluon.png')
 plt.show()
