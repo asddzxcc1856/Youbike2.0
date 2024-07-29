@@ -31,6 +31,18 @@ backend/Machine Learning/rentbike
 backend/Machine Learning/returnbike
 backend/Machine Learning/rent_bike_weight_for_each_station
 backend/Machine Learning/return_bike_weight_for_each_station
-
-
+backend/Machine Learning/bike/first/first_rent/rentbike.csv
+backend/Machine Learning/bike/first/first_return/returnbike.csv
+backend/Machine Learning/bike/second/second_rent/rentbike.csv
+backend/Machine Learning/bike/second/second_return/returnbike.csv
+backend/Machine Learning/bike/third/third_rent/rentbike.csv
+backend/Machine Learning/bike/third/third_return/returnbike.csv
+backend/Machine Learning/bike/fourth/fourth_rent/rentbike.csv
+backend/Machine Learning/bike/fourth/fourth_return/returnbike.csv
+backend/Machine Learning/bike/fifth/fifth_rent/rentbike.csv
+backend/Machine Learning/bike/fifth/fifth_return/returnbike.csv
+backend/Machine Learning/bike/sixth/sixth_rent/rentbike.csv
+backend/Machine Learning/bike/sixth/sixth_return/returnbike.csv
+backend/Machine Learning/bike/seventh/seventh_rent/rentbike.csv
+backend/Machine Learning/bike/seventh/seventh_return/returnbike.csv
 
