@@ -21,9 +21,8 @@ logging.basicConfig(filename='tpot_progress.log', level=logging.INFO)
 # 遍歷所有 CSV 檔案
 for name in ['first','second','third','fourth','fifth','sixth','seventh']:
     for i in range(500101001, 500119092):
-        file_path = f'bike/{name}/{name}_rent/{i}.csv'
+        file_path = f'./bike/{name}/{name}_rent/{i}.csv'
         if not os.path.exists(file_path):
-            print("f'bike/{name}/{name}_rent/{i}.csv' not found")
             continue
         
         # 讀取數據
@@ -70,7 +69,7 @@ print("train_test_split Finished")
 
 print("TPOTRegressor Start...")
 # 使用TPOT進行自動化模型選擇
-tpot = TPOTRegressor(verbosity=2, generations=5, population_size=20, random_state=42, periodic_checkpoint_folder='tpot_checkpoints')
+tpot = TPOTRegressor(verbosity=3, random_state=42, periodic_checkpoint_folder='tpot_checkpoints')
 tpot.fit(X_train, y_train)
 print("TPOTRegressor Finished")
 

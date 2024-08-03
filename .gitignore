@@ -23,6 +23,8 @@ google-maps-vue/*.sln
 google-maps-vue/*.sw?
 
 backend/Flask/venv
+backend/Flask/*.pkl
+backend/Machine Learning/*.pkl
 backend/Machine Learning/MLvenv
 backend/Machine Learning/MLvenv11
 backend/Machine Learning/AutogluonModels
