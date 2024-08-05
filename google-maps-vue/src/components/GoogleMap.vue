@@ -1,36 +1,67 @@
 <template>
   <div id="map" ref="mapContainer" class="map"></div>
-  <div v-if="props.borrowRecommendedLocation !== null || props.returnRecommendedLocation !== null" class="card border-primary shadow-lg animate__animated animate__fadeInUp my-4" style="border-radius: 15px; overflow: hidden;">
+  <div v-if="props.borrowRecommendedLocation !== null || props.returnRecommendedLocation !== null"
+    class="card border-primary shadow-lg animate__animated animate__fadeInUp my-4"
+    style="border-radius: 15px; overflow: hidden;">
     <div class="card-body" style="background: linear-gradient(135deg, #e0f7fa 30%, #ffffff 100%);">
       <div v-if="props.borrowRecommendedLocation !== null && props.borrowRecommendedLocation.station != '無'">
         <h5 class="card-title text-primary mb-3" style="font-weight: bold;">
           借車時間： {{ props.formData.borrow_date }} {{ props.formData.borrow_time }}
         </h5>
         <p class="card-text mb-3" style="font-size: 1.1rem; color: #007bff;">
-          推薦借車地點：<strong>{{ props.borrowRecommendedLocation.station }}</strong>
+          推薦借車地點一：<strong>{{ props.borrowRecommendedLocation.station[0] }}</strong>
+          地點一距離：<strong>{{ Math.round(props.borrowRecommendedLocation.distance[0] * 1000) / 1000 }} 公里(km)</strong>
         </p>
-        <button 
-          class="btn btn-outline-primary btn-sm mb-4" 
-          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" 
-          @click="showBorrowLocation">
-          顯示借車位置
+        <p class="card-text mb-3" style="font-size: 1.1rem; color: #007bff;">
+          推薦借車地點二：<strong>{{ props.borrowRecommendedLocation.station[1] }}</strong>
+          地點二距離：<strong>{{ Math.round(props.borrowRecommendedLocation.distance[1] * 1000) / 1000 }} 公里(km)</strong>
+        </p>
+        <p class="card-text mb-3" style="font-size: 1.1rem; color: #007bff;">
+          推薦借車地點三：<strong>{{ props.borrowRecommendedLocation.station[2] }}</strong>
+          地點三距離：<strong>{{ Math.round(props.borrowRecommendedLocation.distance[2] * 1000) / 1000 }} 公里(km)</strong>
+        </p>
+        <button class="btn btn-outline-primary btn-sm mb-4"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showBorrowLocation('1')">
+          顯示借車地點一
+        </button>
+        <button class="btn btn-outline-primary btn-sm mb-4"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showBorrowLocation('2')">
+          顯示借車地點二
+        </button>
+        <button class="btn btn-outline-primary btn-sm mb-4"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showBorrowLocation('3')">
+          顯示借車地點三
         </button>
       </div>
-      <hr 
-        v-if="props.borrowRecommendedLocation !== null && props.returnRecommendedLocation !== null" 
+      <hr v-if="props.borrowRecommendedLocation !== null && props.returnRecommendedLocation !== null"
         style="border-top: 1px solid rgba(0, 123, 255, 0.5);">
       <div v-if="props.returnRecommendedLocation !== null && props.returnRecommendedLocation.station != '無'">
         <h5 class="card-title text-success mb-3" style="font-weight: bold;">
           還車時間： {{ props.formData.return_date }} {{ props.formData.return_time }}
         </h5>
         <p class="card-text mb-3" style="font-size: 1.1rem; color: #28a745;">
-          推薦還車地點：<strong>{{ props.returnRecommendedLocation.station }}</strong>
+          推薦還車地點一：<strong>{{ props.returnRecommendedLocation.station[0] }}</strong>
+          地點一距離：<strong>{{ Math.round(props.returnRecommendedLocation.distance[0] * 1000) / 1000 }} 公里(km)</strong>
         </p>
-        <button 
-          class="btn btn-outline-success btn-sm" 
-          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" 
-          @click="showReturnLocation">
-          顯示還車位置
+        <p class="card-text mb-3" style="font-size: 1.1rem; color: #28a745;">
+          推薦還車地點二：<strong>{{ props.returnRecommendedLocation.station[1] }}</strong>
+          地點二距離：<strong>{{ Math.round(props.returnRecommendedLocation.distance[1] * 1000) / 1000 }} 公里(km)</strong>
+        </p>
+        <p class="card-text mb-3" style="font-size: 1.1rem; color: #28a745;">
+          推薦還車地點三：<strong>{{ props.returnRecommendedLocation.station[2] }}</strong>
+          地點三距離：<strong>{{ Math.round(props.returnRecommendedLocation.distance[2] * 1000) / 1000 }} 公里(km)</strong>
+        </p>
+        <button class="btn btn-outline-success btn-sm"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showReturnLocation('1')">
+          顯示還車地點一
+        </button>
+        <button class="btn btn-outline-success btn-sm"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showReturnLocation('2')">
+          顯示還車地點二
+        </button>
+        <button class="btn btn-outline-success btn-sm"
+          style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.9rem;" @click="showReturnLocation('3')">
+          顯示還車地點三
         </button>
       </div>
     </div>
@@ -127,8 +158,8 @@ export default {
     let markers = [];
     let borrowMarker = null;
     let returnMarker = null;
-    let borrowRecommendedMarker = null;
-    let returnRecommendedMarker = null;
+    let borrowRecommendedMarker = [null, null, null];
+    let returnRecommendedMarker = [null, null, null];
     let map;
     let clickCount = 0; // 增加 clickCount 來跟踪點擊次數
 
@@ -172,13 +203,17 @@ export default {
       });
     };
 
-    const updateBorrowRecommendedMarker = (location) => {
-      if (borrowRecommendedMarker) {
-        borrowRecommendedMarker.setMap(null);
+    const updateBorrowRecommendedMarker = (location, index) => {
+      if (borrowRecommendedMarker[index]) {
+        borrowRecommendedMarker[index].setMap(null);
       }
-      borrowRecommendedMarker = new google.maps.Marker({
+      let loc = {
+        'lat': location.lat[index],
+        'lng': location.lng[index]
+      }
+      borrowRecommendedMarker[index] = new google.maps.Marker({
         zIndex: 10,
-        position: location,
+        position: loc,
         map,
         title: 'Recommended Location',
         icon: {
@@ -188,36 +223,41 @@ export default {
       });
 
       const infoWindow = new google.maps.InfoWindow({
+        headerContent: '推薦借車站點 ' + (index + 1).toString(),
         content: `
         <div>
-          <p>推薦借車站點: ${location.station}</p>
-          <p>可借車輛: ${location.predicted_available_bikes}</p>
-          <p>距離: ${roundTo(location.distance, 3) * 1000} (公尺)(m)</p>
+          <p>站點: ${location.station[index]}</p>
+          <p>可借車輛: ${location.predicted_available_bikes[index]}</p>
+          <p>距離: ${roundTo(location.distance[index], 3) * 1000} (公尺)(m)</p>
         </div>
                   `
       });
 
-      borrowRecommendedMarker.addListener('click', () => {
+      borrowRecommendedMarker[index].addListener('click', () => {
         if (currentInfoWindow) {
           currentInfoWindow.close();
         }
-        infoWindow.open(map, borrowRecommendedMarker);
+        infoWindow.open(map, borrowRecommendedMarker[index]);
         currentInfoWindow = infoWindow;
       });
-      infoWindow.open(map, borrowRecommendedMarker);
+      infoWindow.open(map, borrowRecommendedMarker[index]);
       currentInfoWindow = infoWindow;
-      map.setZoom(18);  // 設置放大級別，可以根據需要調整
-      map.setCenter(location);
+      map.setZoom(15);  // 設置放大級別，可以根據需要調整
+      map.setCenter(loc);
 
     };
 
-    const updateReturnRecommendedMarker = (location) => {
-      if (returnRecommendedMarker) {
-        returnRecommendedMarker.setMap(null);
+    const updateReturnRecommendedMarker = (location, index) => {
+      if (returnRecommendedMarker[index]) {
+        returnRecommendedMarker[index].setMap(null);
       }
-      returnRecommendedMarker = new google.maps.Marker({
+      let loc = {
+        'lat': location.lat[index],
+        'lng': location.lng[index]
+      }
+      returnRecommendedMarker[index] = new google.maps.Marker({
         zIndex: 10,
-        position: location,
+        position: loc,
         map,
         title: 'Recommended Location',
         icon: {
@@ -227,26 +267,27 @@ export default {
       });
 
       const infoWindow = new google.maps.InfoWindow({
+        headerContent: '推薦還車站點 ' + (index + 1).toString(),
         content: `
         <div>
-          <p>推薦還車站點: ${location.station}</p>
-          <p>剩餘空位: ${location.predicted_available_bikes}</p>
-          <p>距離: ${roundTo(location.distance, 3) * 1000} (公尺)(m)</p>
+          <p>站點: ${location.station[index]}</p>
+          <p>剩餘空位: ${location.predicted_available_bikes[index]}</p>
+          <p>距離: ${roundTo(location.distance[index], 3) * 1000} (公尺)(m)</p>
         </div>
                   `
       });
 
-      returnRecommendedMarker.addListener('click', () => {
+      returnRecommendedMarker[index].addListener('click', () => {
         if (currentInfoWindow) {
           currentInfoWindow.close();
         }
-        infoWindow.open(map, returnRecommendedMarker);
+        infoWindow.open(map, returnRecommendedMarker[index]);
         currentInfoWindow = infoWindow;
       });
-      infoWindow.open(map, returnRecommendedMarker);
+      infoWindow.open(map, returnRecommendedMarker[index]);
       currentInfoWindow = infoWindow;
-      map.setZoom(18);  // 設置放大級別，可以根據需要調整
-      map.setCenter(location);
+      map.setZoom(15);  // 設置放大級別，可以根據需要調整
+      map.setCenter(loc);
 
     };
 
@@ -309,7 +350,6 @@ export default {
             text: station.title,
             block: station.block
           }));
-          console.log(borrowStations.value)
 
         };
 
@@ -414,24 +454,34 @@ export default {
     });
 
     watch(() => props.borrowRecommendedLocation, (newLocation) => {
-      if ((formDataMap.value == "1" || formDataMap.value == "2") && newLocation && newLocation.lat && newLocation.lng && !isNaN(newLocation.lat) && !isNaN(newLocation.lng)) {
-        updateBorrowRecommendedMarker(newLocation);
+      if ((formDataMap.value == "1" || formDataMap.value == "2")) {
+        updateBorrowRecommendedMarker(newLocation, 0);
+        updateBorrowRecommendedMarker(newLocation, 1);
+        updateBorrowRecommendedMarker(newLocation, 2);
       }
-      if (formDataMap.value == "2")
-      {
-        returnRecommendedMarker.setMap(null);
-        returnRecommendedMarker = null;
+      if (formDataMap.value == "2") {
+        returnRecommendedMarker[0].setMap(null);
+        returnRecommendedMarker[0] = null;
+        returnRecommendedMarker[1].setMap(null);
+        returnRecommendedMarker[1] = null;
+        returnRecommendedMarker[2].setMap(null);
+        returnRecommendedMarker[2] = null;
       }
     });
 
     watch(() => props.returnRecommendedLocation, (newLocation) => {
-      if ((formDataMap.value == "1" || formDataMap.value == "3") && newLocation && newLocation.lat && newLocation.lng && !isNaN(newLocation.lat) && !isNaN(newLocation.lng)) {
-        updateReturnRecommendedMarker(newLocation);
+      if ((formDataMap.value == "1" || formDataMap.value == "3")) {
+        updateReturnRecommendedMarker(newLocation, 0);
+        updateReturnRecommendedMarker(newLocation, 1);
+        updateReturnRecommendedMarker(newLocation, 2);
       }
-      if (formDataMap.value == "3")
-      {
-        borrowRecommendedMarker.setMap(null);
-        borrowRecommendedMarker = null;
+      if (formDataMap.value == "3") {
+        borrowRecommendedMarker[0].setMap(null);
+        borrowRecommendedMarker[0] = null;
+        borrowRecommendedMarker[1].setMap(null);
+        borrowRecommendedMarker[1] = null;
+        borrowRecommendedMarker[2].setMap(null);
+        borrowRecommendedMarker[2] = null;
       }
     });
 
@@ -459,19 +509,39 @@ export default {
       }
     }
 
-    const showBorrowLocation = () => {
-      if (props.borrowRecommendedLocation) {
-        updateBorrowRecommendedMarker(props.borrowRecommendedLocation);
-        map.setZoom(18);
-        map.setCenter(props.borrowRecommendedLocation);
+    const showBorrowLocation = (type) => {
+      switch (type) {
+        case '1':
+          map.setZoom(18);
+          map.setCenter(borrowRecommendedMarker[0].getPosition());
+          break;
+        case '2':
+          map.setZoom(18);
+          map.setCenter(borrowRecommendedMarker[1].getPosition());
+          break;
+        case '3':
+          map.setZoom(18);
+          map.setCenter(borrowRecommendedMarker[2].getPosition());
+          break;
       }
+
+
     };
 
-    const showReturnLocation = () => {
-      if (props.returnRecommendedLocation) {
-        updateReturnRecommendedMarker(props.returnRecommendedLocation);
-        map.setZoom(18);
-        map.setCenter(props.returnRecommendedLocation);
+    const showReturnLocation = (type) => {
+      switch (type) {
+        case '1':
+          map.setZoom(18);
+          map.setCenter(returnRecommendedMarker[0].getPosition());
+          break;
+        case '2':
+          map.setZoom(18);
+          map.setCenter(returnRecommendedMarker[1].getPosition());
+          break;
+        case '3':
+          map.setZoom(18);
+          map.setCenter(returnRecommendedMarker[2].getPosition());
+          break;
       }
     };
 

@@ -75,15 +75,16 @@ def get_distance(user_lat, user_lon, station_lat, station_lon):
         matrix = gmaps.distance_matrix((user_lat, user_lon), (lat, lon), mode='walking', units='metric')
         distance_text = matrix['rows'][0]['elements'][0]['distance']['text']
         distance_val = float(distance_text.replace(",", "").split(' ')[0])
+        if distance_text.replace(",", "").split(' ')[1] == 'm' :
+            distance_val = distance_val / 1000
         result.append({
             'distance_km': distance_val,
             'station_lat': lat,
             'station_lon': lon
         })
 
-    result_json = json.dumps(result, indent=4)
     
-    return distances_h,result_json
+    return distances_h,result
     
 
 @app.route('/api/recommend', methods=['POST'])
@@ -132,11 +133,11 @@ def recommend():
         # 預測未來車輛數量
         borrow_future_predictions = model.predict(borrow_future_features) 
         # 將預測結果加入原始數據
-        selected_features['predicted_available_bikes'] = borrow_future_predictions 
+        selected_features['predicted_available_bikes'] = [int(bike - 3) for bike in borrow_future_predictions] 
         # 過濾有剩餘車輛的站點
         selected_features_with_bikes = selected_features[selected_features['predicted_available_bikes'] > 0] 
         # 按照距離排序，推薦最近的站點
-        borrow_recommended_station = selected_features_with_bikes.sort_values(by='distance_to_borrow').iloc[0]
+        borrow_recommended_station = selected_features_with_bikes.sort_values(by='distance_to_borrow').iloc[0:3]
         print(borrow_recommended_station)
     if search_type == "1" or search_type == "3":
         ret_date = data.get("return_date")
@@ -169,59 +170,53 @@ def recommend():
         # 預測未來車輛數量
         return_future_predictions = model.predict(return_future_features)
         # 將預測結果加入原始數據
-        selected_features['predicted_available_return'] = [a - b for a, b in zip(selected_features['total'], return_future_predictions)]
+        selected_features['predicted_available_return'] = [int(a - b) for a, b in zip(selected_features['total'], return_future_predictions)]
         # 過濾有剩餘車輛的站點
         selected_features_with_return = selected_features[selected_features['predicted_available_return'] > 0]
         # 按照距離排序，推薦最近的站點
-        return_recommended_station = selected_features_with_return.sort_values(by='distance_to_return').iloc[0]
+        return_recommended_station = selected_features_with_return.sort_values(by='distance_to_return').iloc[0:3]
         print(return_recommended_station)
     if search_type == "1":
         result = [{
             "location": {
-                "lat": borrow_recommended_station['latitude'],
-                "lng": borrow_recommended_station['longitude']
+                "lat": borrow_recommended_station['latitude'].tolist(),
+                "lng": borrow_recommended_station['longitude'].tolist()
                 },
-            "station": selected_features[
-        (selected_features['latitude'] == borrow_recommended_station['latitude']) &
-        (selected_features['longitude'] == borrow_recommended_station['longitude'])]['sna'].iloc[0],
-            "distance": borrow_recommended_station['distance_to_borrow'],
-            "predicted_available_bikes": int(borrow_recommended_station['predicted_available_bikes'])
+            "station": borrow_recommended_station['sna'].tolist(),
+            "distance": [item['distance_km'] for item in distance_to_borrow],
+            "predicted_available_bikes": borrow_recommended_station['predicted_available_bikes'].tolist()
             }, 
             {"location": {
-                "lat": return_recommended_station['latitude'],
-                "lng": return_recommended_station['longitude']
+                "lat": return_recommended_station['latitude'].tolist(),
+                "lng": return_recommended_station['longitude'].tolist()
                 },
-            "station": selected_features[
-        (selected_features['latitude'] == return_recommended_station['latitude']) &
-        (selected_features['longitude'] == return_recommended_station['longitude'])]['sna'].iloc[0],
-            "distance": return_recommended_station['distance_to_return'],
-            "predicted_available_return": int(return_recommended_station["total"])-int(return_recommended_station['predicted_available_bikes'])
+            "station": return_recommended_station['sna'].tolist(),
+            "distance": [item['distance_km'] for item in distance_to_return],
+            "predicted_available_return": return_recommended_station['predicted_available_return'].tolist()
             }]
     elif search_type == "2":
         result = [{
             "location": {
-                "lat": borrow_recommended_station['latitude'],
-                "lng": borrow_recommended_station['longitude']
+                "lat": borrow_recommended_station['latitude'].tolist(),
+                "lng": borrow_recommended_station['longitude'].tolist()
                 },
-            "station": selected_features[
-        (selected_features['latitude'] == borrow_recommended_station['latitude']) &
-        (selected_features['longitude'] == borrow_recommended_station['longitude'])]['sna'].iloc[0],
-            "distance": borrow_recommended_station['distance_to_borrow'],
-            "predicted_available_bikes": int(borrow_recommended_station['predicted_available_bikes'])
+            "station": borrow_recommended_station['sna'].tolist(),
+            "distance": [item['distance_km'] for item in distance_to_borrow],
+            "predicted_available_bikes": borrow_recommended_station['predicted_available_bikes'].tolist()
             }]
     elif search_type == "3":
         result = [{
             "location": {
-                "lat": return_recommended_station['latitude'],
-                "lng": return_recommended_station['longitude']
+                "lat": return_recommended_station['latitude'].tolist(),
+                "lng": return_recommended_station['longitude'].tolist()
                 },
-            "station": selected_features[
-        (selected_features['latitude'] == return_recommended_station['latitude']) &
-        (selected_features['longitude'] == return_recommended_station['longitude'])]['sna'].iloc[0],
-            "distance": return_recommended_station['distance_to_return'],
-            "predicted_available_return": int(return_recommended_station['predicted_available_return'])
+            "station": return_recommended_station['sna'].tolist(),
+            "distance": [item['distance_km'] for item in distance_to_return],
+            "predicted_available_return": return_recommended_station['predicted_available_return'].tolist()
             }]
-    
+    print("------------result------------")
+    print(result)
+    print("------------------------------")
     e = ti.time()
     print("服務時間 : ",e - s)
     return jsonify(result), 200

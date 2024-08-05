@@ -8,22 +8,22 @@
     <transition name="fade" appear>
         <form @submit.prevent="handleSubmit" class="form-container">
             <div v-if="formData.search_type === '1' || formData.search_type === '2'" class="form-group mb-3">
-                <label for="borrow_date" class="form-label">選擇借車日期:</label>
+                <label for="borrow_date" class="form-label">預定借車日期:</label>
                 <input type="date" id="borrow_date" class="form-control" v-model="formData.borrow_date"
                     :min="borrow_minDate" :max="borrow_maxDate" required @change="handleBorrowDateChange" />
             </div>
             <div v-if="formData.search_type === '1' || formData.search_type === '2'" class="form-group mb-3">
-                <label for="borrow_time" class="form-label">選擇借車時間:</label>
+                <label for="borrow_time" class="form-label">預定借車時間:</label>
                 <input type="time" id="borrow_time" class="form-control" v-model="formData.borrow_time"
                     :min="borrow_minTime" :max="borrow_maxTime" required @change="handleBorrowDateChange" />
             </div>
             <div v-if="formData.search_type === '1' || formData.search_type === '3'" class="form-group mb-3">
-                <label for="return_date" class="form-label">選擇還車日期:</label>
+                <label for="return_date" class="form-label">預定還車日期:</label>
                 <input type="date" id="return_date" class="form-control" v-model="formData.return_date"
                     :min="return_minDate" required @change="handleReturnDateChange" />
             </div>
             <div v-if="formData.search_type === '1' || formData.search_type === '3'" class="form-group mb-3">
-                <label for="return_time" class="form-label">選擇還車時間:</label>
+                <label for="return_time" class="form-label">預定還車時間:</label>
                 <input type="time" id="return_time" class="form-control" v-model="formData.return_time"
                     :min="return_minTime" required @change="handleReturnDateChange" />
             </div>
@@ -45,30 +45,49 @@
                 <p class="text-white">目前沒有查詢紀錄</p>
             </div>
             <div v-else class="row">
-                <div v-for="(query, index) in queryHistory" :key="index" class="col-md-6 mb-3">
+                <div v-for="(query, index) in paginatedHistory" :key="index" class="col-md-6 mb-3">
                     <div class="card animate__animated animate__fadeInUp" :class="'color-' + (index % 5)">
                         <div class="card-header text-white">
                             <strong>查詢時間: {{ query.date }} {{ query.time }} </strong>
                         </div>
                         <div class="card-body">
                             <p class="card-text"><strong>借車時間：</strong>{{ query.borrow_date }} {{ query.borrow_time }}</p>
-                            <p class="card-text"><strong>推薦借車地點：</strong>{{ query.recommendedLocation[0].station }}</p>
-                            <p class="card-text"><strong>車站座標：</strong>{{ query.recommendedLocation[0].lat }}, {{
-                                query.recommendedLocation[0].lng }}</p>
+                            <p class="card-text"><strong>推薦借車地點一：</strong>{{ query.recommendedLocation[0].station[0] }}</p>
+                            <p class="card-text"><strong>車站距離：</strong>{{ Math.round(query.recommendedLocation[0].distance[0]*1000) / 1000 }} 公里(km)</p>
+                            <p class="card-text"><strong>推薦借車地點二：</strong>{{ query.recommendedLocation[0].station[1] }}</p>
+                            <p class="card-text"><strong>車站距離：</strong>{{ Math.round(query.recommendedLocation[0].distance[1]*1000) / 1000 }} 公里(km)</p>
+                            <p class="card-text"><strong>推薦借車地點三：</strong>{{ query.recommendedLocation[0].station[2] }}</p>
+                            <p class="card-text"><strong>車站距離：</strong>{{ Math.round(query.recommendedLocation[0].distance[2]*1000) / 1000 }} 公里(km)</p>
                             <p class="card-text"><strong>還車時間：</strong>{{ query.return_date }} {{ query.return_time }}</p>
-                            <p class="card-text"><strong>推薦還車地點：</strong>{{ query.recommendedLocation[1].station }}</p>
-                            <p class="card-text"><strong>車站座標：</strong>{{ query.recommendedLocation[1].lat }}, {{
-                                query.recommendedLocation[1].lng }}</p>
+                            <p class="card-text"><strong>推薦還車地點一：</strong>{{ query.recommendedLocation[1].station[0] }}</p>
+                            <p class="card-text"><strong>車站座標：</strong>{{ Math.round(query.recommendedLocation[1].distance[0]*1000) / 1000 }} 公里(km)</p>
+                            <p class="card-text"><strong>推薦還車地點二：</strong>{{ query.recommendedLocation[1].station[1] }}</p>
+                            <p class="card-text"><strong>車站座標：</strong>{{ Math.round(query.recommendedLocation[1].distance[1]*1000) / 1000 }} 公里(km)</p>
+                            <p class="card-text"><strong>推薦還車地點三：</strong>{{ query.recommendedLocation[1].station[2] }}</p>
+                            <p class="card-text"><strong>車站座標：</strong>{{ Math.round(query.recommendedLocation[1].distance[2]*1000) / 1000 }} 公里(km)</p>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div v-if="totalPages > 1" class="pagination-container mt-4">
+                <ul class="pagination justify-content-center">
+                    <li :class="['page-item', { disabled: currentPage === 1 }]">
+                        <a class="page-link" href="#" @click.prevent="prevPage">上一頁</a>
+                    </li>
+                    <li v-for="page in totalPages" :key="page" :class="['page-item', { active: page === currentPage }]">
+                        <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+                    </li>
+                    <li :class="['page-item', { disabled: currentPage === totalPages }]">
+                        <a class="page-link" href="#" @click.prevent="nextPage">下一頁</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </transition>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import GoogleMap from '../components/GoogleMap.vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'animate.css/animate.min.css';
@@ -91,6 +110,34 @@ export default {
         const borrow_maxDate = ref(return_minDate.value);
         const borrow_maxTime = ref(return_minTime.value);
         const queryHistory = ref([]); // 用於存儲查詢紀錄
+
+        // 分頁設置
+        const itemsPerPage = 2;
+        const currentPage = ref(1);
+
+        const totalPages = computed(() => Math.ceil(queryHistory.value.length / itemsPerPage));
+
+        const paginatedHistory = computed(() => {
+            const start = (currentPage.value - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            return queryHistory.value.slice(start, end);
+        });
+
+        const nextPage = () => {
+            if (currentPage.value < totalPages.value) {
+                currentPage.value++;
+            }
+        };
+
+        const prevPage = () => {
+            if (currentPage.value > 1) {
+                currentPage.value--;
+            }
+        };
+
+        const goToPage = (page) => {
+            currentPage.value = page;
+        };
 
         onMounted(() => {
 
@@ -149,19 +196,20 @@ export default {
                 const result = await response.json();
 
                 // 確保經緯度值是有效的數字
-                if (formData.value.search_type == "1" && result[0].location.lat && result[0].location.lng && !isNaN(result[0].location.lat) && !isNaN(result[0].location.lng) &&
-                    result[1].location.lat && result[1].location.lng && !isNaN(result[1].location.lat) && !isNaN(result[1].location.lng)) {
+                if (formData.value.search_type == "1" && 
+                    result[0].location.lat && result[0].location.lng && !isNaN(result[0].location.lat[0]) && !isNaN(result[0].location.lng[0]) && !isNaN(result[0].location.lat[1]) && !isNaN(result[0].location.lng[1]) && !isNaN(result[0].location.lat[2]) && !isNaN(result[0].location.lng[2]) &&
+                    result[1].location.lat && result[1].location.lng && !isNaN(result[1].location.lat[0]) && !isNaN(result[1].location.lng[0]) && !isNaN(result[1].location.lat[1]) && !isNaN(result[1].location.lng[1]) && !isNaN(result[1].location.lat[2]) && !isNaN(result[1].location.lng[2])) {
                     borrowRecommendedLocation.value = {
-                        lat: parseFloat(result[0].location.lat),
-                        lng: parseFloat(result[0].location.lng),
+                        lat: result[0].location.lat,
+                        lng: result[0].location.lng,
                         station: result[0].station,
                         distance: result[0].distance,
                         predicted_available_bikes: result[0].predicted_available_bikes
                     };
 
                     returnRecommendedLocation.value = {
-                        lat: parseFloat(result[1].location.lat),
-                        lng: parseFloat(result[1].location.lng),
+                        lat: result[1].location.lat,
+                        lng: result[1].location.lng,
                         station: result[1].station,
                         distance: result[1].distance,
                         predicted_available_bikes: result[1].predicted_available_return
@@ -217,8 +265,6 @@ export default {
                 else {
                     console.error('Invalid coordinates received from the API');
                 }
-
-                console.log('Recommendation:', result);
             } catch (error) {
                 console.error('Error submitting data:', error);
             }
@@ -428,13 +474,26 @@ export default {
             handleBorrowDateChange,
             handleReturnDateChange,
             handleTypeChange,
-            queryHistory // 用於存儲查詢紀錄
+            queryHistory, // 用於存儲查詢紀錄
+            itemsPerPage,
+            currentPage,
+            totalPages,
+            paginatedHistory,
+            nextPage,
+            prevPage,
+            goToPage
         };
     }
 };
 </script>
 
 <style scoped>
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to right, #2c3e50, #4ca1af);
+    color: #333;
+}
+
 .map {
     height: 70vh;
     width: 80vw;
@@ -450,133 +509,106 @@ export default {
     max-width: 600px;
     padding: 20px;
     margin-top: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 20px;
-    color: rgb(31, 31, 31);
-    font-size: larger;
+    color: #333;
 }
 
-.form-group {
+.form-container .form-group {
     width: 100%;
+    margin-bottom: 15px;
 }
 
-.form-container label {
-    margin: 5px 0;
+.form-container .form-label {
     font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
 }
 
-.form-container input,
-.form-container select {
-    margin: 5px 0;
-    padding: 8px;
+.form-container .form-control, .form-container .form-select {
     width: 100%;
-    box-sizing: border-box;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
-.form-container button {
-    margin-top: 10px;
-    align-self: flex-end;
-    background-color: #007bff;
-    color: white;
-    border: none;
+.form-container .btn {
+    align-self: center;
     padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-.form-container button:hover {
-    background-color: #0056b3;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.5s;
-}
-
-.fade-enter,
-.fade-leave-to
-
-/* .fade-leave-active in <2.1.8 */
-    {
-    opacity: 0;
+.form-container .btn:hover {
+    background-color: #2980b9;
 }
 
 .query-history {
-    background-color: rgba(0, 0, 0, 0.7);
-    /* 深色背景，70% 不透明度 */
-    border-radius: 15px;
-    /* 圓角 */
-    padding: 20px;
-    /* 內邊距 */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    /* 陰影 */
-    margin-bottom: 20px;
-}
-
-.query-history .card {
+    background: rgba(0, 0, 0, 0.8);
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 20px;
 }
 
-.query-history .card:hover {
-    transform: translateY(-10px);
+.query-history h3 {
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.query-history .card-header {
-    font-size: 1.1em;
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.color-0 {
-    background-color: #FF6F61;
-    /* 橙色 */
-    color: rgb(3, 3, 3);
+.card-header {
+    background: #3498db;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
 }
 
-.color-1 {
-    background-color: #6B5B95;
-    /* 紫色 */
-    color: rgb(3, 3, 3);
+.card-body {
+    background: #fff;
+    color: #333;
+    padding: 15px;
+    text-align: left;
 }
 
-.color-2 {
-    background-color: #88B04B;
-    /* 綠色 */
-    color: rgb(3, 3, 3);
+.pagination-container {
+    display: flex;
+    justify-content: center;
 }
 
-.color-3 {
-    background-color: #FFA07A;
-    /* 淺橙色 */
-    color: rgb(3, 3, 3);
+.page-item.disabled .page-link, .page-item.active .page-link {
+    background-color: #3498db;
+    color: #fff;
+    border-color: #3498db;
 }
 
-.color-4 {
-    background-color: #F7CAC9;
-    /* 粉色 */
-    color: rgb(3, 3, 3);
+.page-link {
+    color: #3498db;
+    transition: background-color 0.3s ease;
 }
 
-.query-history .card-body {
-    background-color: rgba(255, 255, 255, 0.8);
-    /* 白色背景，80% 不透明度 */
+.page-link:hover {
+    background-color: #2980b9;
+    color: #fff;
 }
 
-@media (max-width: 768px) {
-    .form-container {
-        width: 100%;
-        font-size: medium;
-    }
-
-    .map {
-        width: 100%;
-    }
-}
+.color-0 { background-color: #ffadad; }
+.color-1 { background-color: #ffd6a5; }
+.color-2 { background-color: #fdffb6; }
+.color-3 { background-color: #caffbf; }
+.color-4 { background-color: #9bf6ff; }
 </style>
